@@ -53,3 +53,16 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# CMake
+/build/
+/compile_commands.json
+
+# Compilation C
+*.o
+*.a
+*.so
+
+# Temporaires
+*.swp
+*~
