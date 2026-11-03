@@ -2,7 +2,6 @@
 #include "../include/network_server.h"
 #include "../../shared/include/protocol.h"
 #include <stdio.h>
-#include <errno.h>
 #include <string.h>
 
 int network_server_init(NetworkServer *network)
