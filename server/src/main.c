@@ -1,7 +1,8 @@
+#include "server.h"
 #include <stdio.h>
 
 int main(void)
 {
-    printf("Game ISEN - Server\n");
-    return 0;
+    printf("test Game-ISEN server");
+    return server_run();
 }
