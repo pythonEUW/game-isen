@@ -52,6 +52,7 @@ target_link_libraries(client PRIVATE
     shared
     ${RAYLIB_TARGET}
     PkgConfig::ENET
+    m
 )
 
 # ==========================================
@@ -62,6 +63,8 @@ add_executable(server
     server/src/main.c
     server/src/server.c
     server/src/network_server.c
+    server/src/world.c
+    server/src/player.c
 )
 
 target_include_directories(server PRIVATE
@@ -71,4 +74,5 @@ target_include_directories(server PRIVATE
 target_link_libraries(server PRIVATE
     shared
     PkgConfig::ENET
+    m
 )

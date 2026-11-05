@@ -1,6 +1,7 @@
 
 #include "server.h"
 #include "network_server.h"
+#include "world.h"
 
 #include <signal.h>
 #include <stdio.h>
@@ -16,6 +17,9 @@ static void handle_signal(int signal_number)
 int server_run(void)
 {
     NetworkServer network;
+    World world;
+
+    world_init(&world);
 
     if (network_server_init(&network) != 0)
         return 1;
@@ -25,7 +29,7 @@ int server_run(void)
     printf("En attente de joueurs...\n");
 
     while (running) {
-        if (network_server_poll(&network) != 0)
+        if (network_server_poll(&network, &world) != 0)
             break;
 
         // Plus tard :

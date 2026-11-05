@@ -4,7 +4,9 @@
 #include "../../shared/include/protocol.h"
 #include <stdio.h>
 #include <string.h>
-#include "../include/player.h"
+#include "../include/world.h"
+#include "player.h"
+#include "world.h"
 
 int network_server_init(NetworkServer *network)
 {
@@ -36,7 +38,7 @@ int network_server_init(NetworkServer *network)
 return 0;
 }
 
-int network_server_poll(NetworkServer *network)
+int network_server_poll(NetworkServer *network, World *world)
 {
     ENetEvent event;
 
@@ -57,8 +59,17 @@ int network_server_poll(NetworkServer *network)
     switch (event.type) {
         case ENET_EVENT_TYPE_CONNECT:
             printf("Nouveau client connecte\n");
-            player_init(*player, pivot, 0,  0);
-            printf("Player attribué au nouveau client");
+            Player *player = world_add_player(world);
+            printf(
+                "Player [%u] | X: %.2f | Y: %.2f | Speed: %.2f | HP: %d | Active: %d\n",
+                player->id,
+                player->x,
+                player->y,
+                player->speed,
+                player->health,
+                player->active
+            );
+
             break;
 
         case ENET_EVENT_TYPE_RECEIVE:
