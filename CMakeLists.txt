@@ -13,7 +13,14 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(PkgConfig REQUIRED)
 
 pkg_check_modules(ENET REQUIRED IMPORTED_TARGET libenet)
-pkg_check_modules(RAYLIB REQUIRED IMPORTED_TARGET raylib)
+
+find_package(raylib CONFIG QUIET)
+if(TARGET raylib)
+    set(RAYLIB_TARGET raylib)
+else()
+    pkg_check_modules(RAYLIB REQUIRED IMPORTED_TARGET raylib)
+    set(RAYLIB_TARGET PkgConfig::RAYLIB)
+endif()
 
 # ==========================================
 # Shared - Code commun
@@ -43,7 +50,7 @@ target_include_directories(client PRIVATE
 
 target_link_libraries(client PRIVATE
     shared
-    PkgConfig::RAYLIB
+    ${RAYLIB_TARGET}
     PkgConfig::ENET
 )
 
