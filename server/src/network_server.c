@@ -1,8 +1,10 @@
+#include <stdint.h>
 #include <unistd.h>
 #include "../include/network_server.h"
 #include "../../shared/include/protocol.h"
 #include <stdio.h>
 #include <string.h>
+#include "../include/player.h"
 
 int network_server_init(NetworkServer *network)
 {
@@ -55,6 +57,8 @@ int network_server_poll(NetworkServer *network)
     switch (event.type) {
         case ENET_EVENT_TYPE_CONNECT:
             printf("Nouveau client connecte\n");
+            player_init(*player, pivot, 0,  0);
+            printf("Player attribué au nouveau client");
             break;
 
         case ENET_EVENT_TYPE_RECEIVE:
