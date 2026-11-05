@@ -40,6 +40,7 @@ target_include_directories(shared PUBLIC
 
 add_executable(client
     client/src/main.c
+    client/src/menu.c
     client/src/game.c
     client/src/network_client.c
 )

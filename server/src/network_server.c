@@ -59,8 +59,10 @@ int network_server_poll(NetworkServer *network)
             break;
 
         case ENET_EVENT_TYPE_RECEIVE:
-            printf("Paquet recu : %zu octets\n",
-                   event.packet->dataLength);
+            printf("Paquet recu (%zu octets) : %.*s\n",
+                   event.packet->dataLength,
+                   (int)event.packet->dataLength,
+                   (char *)event.packet->data);
 
             enet_packet_destroy(event.packet);
             break;
