@@ -1,10 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <enet/enet.h>
 #include <raylib.h>
 
 #include "protocol.h"
+#include "network_client.h"
+#include "menu.h"
+#include "game.h"
+
+#define SCREEN_W 800
+#define SCREEN_H 450
+
 #include "game.h"
 
 /* Test ENet : connexion a un serveur sur 127.0.0.1:GAME_PORT,
@@ -66,22 +72,41 @@ int main(int argc, char **argv)
 
     if (enet_initialize() != 0)
     {
-        fprintf(stderr, "An error occurred while initializing ENet.\n");
+        fprintf(stderr, "ENet: erreur d'initialisation.\n");
         return EXIT_FAILURE;
     }
     atexit(enet_deinitialize);
 
     test_enet();
 
-    InitWindow(800, 450, "Game ISEN - exploration");
+    NetworkClient nc = {0};
+    // lance la connexion si impossible on ferme la fenetre 
+    if (network_client_connect(&nc, "127.0.0.1", GAME_PORT) != 0){
+        fprintf(stderr, "Client: connexion impossible .\n");
+        CloseWindow();
+        return EXIT_FAILURE;
+    }
+
+    InitWindow(800, 450, "Game ISEN");
     if (!IsWindowReady())
     {
         fprintf(stderr, "raylib: impossible d'ouvrir la fenetre.\n");
         return EXIT_FAILURE;
     }
+    InitWindow(SCREEN_W, SCREEN_H, "Game ISEN");
     SetTargetFPS(60);
 
-    game_run();
+    //lance menu et jeu si bouton jouer appuyé
+    MenuAction action = MENU_ACTION_PLAY;
+    while (action == MENU_ACTION_PLAY && !WindowShouldClose())
+    {
+        action = run_menu();
+        if (action == MENU_ACTION_PLAY)
+            game_run(&nc);
+    }
+
+    network_client_disconnect(&nc);
+
     CloseWindow();
     return EXIT_SUCCESS;
 }

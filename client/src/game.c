@@ -3,7 +3,10 @@
 #include <math.h>
 #include <raylib.h>
 
-void game_run(void)
+#define SCREEN_W 800
+#define SCREEN_H 450
+
+void game_run(NetworkClient *nc)
 {
     GameMap map;
     map_init(&map, MAP_DEFAULT_SEED);
@@ -12,7 +15,14 @@ void game_run(void)
     camera.zoom = 1.0f;
     SetTargetFPS(60);
 
-    while (!WindowShouldClose()) {
+    (void)nc; /* le reseau sera utilise ici plus tard */
+    network_client_send(nc, "Client a lancer le jeu");
+
+
+    while (!WindowShouldClose() && !IsKeyPressed(KEY_ESCAPE)) {
+        network_client_poll(nc); /* entretient la connexion et lit les reponses */
+
+
         //TODO: Delete this code and replace it with a proper game loop that handles player input, updates the game state, and renders the scene.
         float dx = (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) -
                    (IsKeyDown(KEY_A) || IsKeyDown(KEY_Q) || IsKeyDown(KEY_LEFT));
@@ -31,6 +41,13 @@ void game_run(void)
 
         BeginDrawing();
         ClearBackground(BLACK);
+        
+        DrawText("LE JEU", SCREEN_W / 2 - MeasureText("LE JEU", 40) / 2, 180, 40, RAYWHITE);
+        DrawText("Echap pour revenir au menu",
+                 SCREEN_W / 2 - MeasureText("Echap pour revenir au menu", 16) / 2,
+                 SCREEN_H - 50, 16, LIGHTGRAY);
+
+
         BeginMode2D(camera);
         for (int y = 0; y < MAP_HEIGHT; y++) {
             for (int x = 0; x < MAP_WIDTH; x++) {

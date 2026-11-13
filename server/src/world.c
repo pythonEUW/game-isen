@@ -1,6 +1,7 @@
 
 #include "world.h"
 
+#include <raylib.h>
 #include <stddef.h>
 #include <math.h>
 
@@ -18,8 +19,8 @@ Player *world_add_player(World *world)
             Player *player = &world->players[i];
 
             player_init(player,
-                        world->next_player_id++,
-                        100.0f, 100.0f);
+                        world->next_player_id++
+            );
 
             return player;
         }

@@ -42,6 +42,7 @@ target_include_directories(shared PUBLIC
 
 add_executable(client
     client/src/main.c
+    client/src/menu.c
     client/src/game.c
     client/src/network_client.c
 )
@@ -75,6 +76,7 @@ target_include_directories(server PRIVATE
 
 target_link_libraries(server PRIVATE
     shared
+    ${RAYLIB_TARGET}
     PkgConfig::ENET
     m
 )
