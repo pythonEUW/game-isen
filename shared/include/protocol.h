@@ -8,7 +8,8 @@
 #define ENET_CHANNEL_COUNT 2
 
 typedef enum {
-    PACKET_PLAYER_STATE = 1
+    PACKET_PLAYER_STATE = 1,
+    PACKET_PLAYER_INPUT = 2
 } PacketType;
 
 typedef struct {
@@ -19,5 +20,11 @@ typedef struct {
     int32_t health;
     uint8_t active;
 } PlayerStatePacket;
+
+typedef struct {
+    uint8_t type;
+    int8_t input_x;
+    int8_t input_y;
+} PlayerInputPacket;
 
 #endif

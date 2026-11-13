@@ -16,8 +16,8 @@ typedef struct {
 
     bool active;
 
-    uint8_t input_x;
-    uint8_t input_y;
+    int8_t input_x;
+    int8_t input_y;
 
 } Player;
 

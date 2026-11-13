@@ -41,6 +41,28 @@ static void test_enet(void)
         enet_host_flush(client);
         printf("ENet OK: paquet 'ping' envoye\n");
 
+        /* Reste connecte quelques secondes pour recevoir les etats
+           des joueurs broadcastes par le serveur (arrivees/departs). */
+        for (int i = 0; i < 10; i++) {
+            if (enet_host_service(client, &event, 1000) <= 0)
+                continue;
+
+            if (event.type == ENET_EVENT_TYPE_RECEIVE) {
+                if (event.packet->dataLength >= sizeof(PlayerStatePacket)) {
+                    PlayerStatePacket *state =
+                        (PlayerStatePacket *)event.packet->data;
+                    if (state->type == PACKET_PLAYER_STATE) {
+                        printf("Player [%u] | X: %.2f | Y: %.2f | HP: %d | Active: %d\n",
+                               state->id, state->x, state->y,
+                               state->health, state->active);
+                    }
+                }
+                enet_packet_destroy(event.packet);
+            } else if (event.type == ENET_EVENT_TYPE_DISCONNECT) {
+                break;
+            }
+        }
+
         enet_peer_disconnect(peer, 0);
         /* attend l'evenement de deconnexion (ou timeout) */
         while (enet_host_service(client, &event, 1000) > 0 &&
