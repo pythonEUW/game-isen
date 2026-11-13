@@ -73,6 +73,7 @@ target_include_directories(server PRIVATE
 
 target_link_libraries(server PRIVATE
     shared
+    ${RAYLIB_TARGET}
     PkgConfig::ENET
     m
 )

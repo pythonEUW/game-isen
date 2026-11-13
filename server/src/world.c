@@ -1,6 +1,7 @@
 
 #include "world.h"
 
+#include <raylib.h>
 #include <stddef.h>
 
 void world_init(World *world)
@@ -16,8 +17,8 @@ Player *world_add_player(World *world)
             Player *player = &world->players[i];
 
             player_init(player,
-                        world->next_player_id++,
-                        100.0f, 100.0f);
+                        world->next_player_id++
+            );
 
             return player;
         }
@@ -44,11 +45,4 @@ void world_remove_player(World *world, uint32_t id)
 
     if (player)
         player->active = false;
-}
-
-void world_update(World *world, float dt)
-{
-    for (int i = 0; i < MAX_PLAYERS; i++) {
-        player_update(&world->players[i], dt);
-    }
 }

@@ -12,5 +12,9 @@ typedef struct {
 int network_server_init(NetworkServer *network);
 int network_server_poll(NetworkServer *network, World *world);
 void network_server_close(NetworkServer *network);
+void network_broadcast_player_state(
+    NetworkServer *network,
+    Player *player
+);
 
 #endif

@@ -1,3 +1,4 @@
+#include <enet/enet.h>
 #include <stdint.h>
 #include <unistd.h>
 #include "../include/network_server.h"
@@ -63,13 +64,14 @@ int network_server_poll(NetworkServer *network, World *world)
             printf(
                 "Player [%u] | X: %.2f | Y: %.2f | Speed: %.2f | HP: %d | Active: %d\n",
                 player->id,
-                player->x,
-                player->y,
+                player->pos.x,
+                player->pos.y,
                 player->speed,
                 player->health,
                 player->active
             );
 
+            network_broadcast_player_state( network, player);
             break;
 
         case ENET_EVENT_TYPE_RECEIVE:
@@ -100,4 +102,28 @@ void network_server_close(NetworkServer *network)
     enet_deinitialize();
 
     printf("Serveur arrete\n");
+}
+
+void network_broadcast_player_state(
+    NetworkServer *network,
+    Player *player
+)
+{
+    PlayerStatePacket state = {
+        .type = PACKET_PLAYER_STATE,
+        .id = player->id,
+        .x = player->pos.x,
+        .y = player->pos.y,
+        .health = player->health,
+        .active = player->active
+    };
+
+    ENetPacket *packet = enet_packet_create(
+        &state,
+        sizeof(PlayerStatePacket),
+        0
+    );
+
+    if (packet != NULL)
+        enet_host_broadcast(network->host, 1, packet);
 }

@@ -1,39 +1,28 @@
-
 #include "player.h"
 
-#include <math.h>
+#include <raylib.h>
+#include <raymath.h>
 
-void player_init(Player *player, uint32_t id,
-                 float x, float y)
+void player_init(Player *player, uint32_t id)
 {
     *player = (Player){
         .id = id,
-        .x = x,
-        .y = y,
-        .speed = 200.0f,
+        .pos = {0.0f, 0.0f},
         .health = 100,
         .active = true,
-        .input_x = 0.0f,
-        .input_y = 0.0f
     };
 }
 
-void player_update(Player *player, float dt)
+void player_update(Player *player)
 {
-    if (!player->active)
-        return;
 
-    float dx = player->input_x;
-    float dy = player->input_y;
+    Vector2 move;
 
-    // Eviter d'aller plus vite en diagonale
-    float length = sqrtf(dx * dx + dy * dy);
-
-    if (length > 1.0f) {
-        dx /= length;
-        dy /= length;
+    if(player->active){
+        move = (Vector2){player->input_x*player->speed, player->input_y*player->speed};
+    } else {
+        move = (Vector2){0.0f, 0.0f};
     }
 
-    player->x += dx * player->speed * dt;
-    player->y += dy * player->speed * dt;
+    player->pos = Vector2Add(player->pos, move);
 }
