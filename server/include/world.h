@@ -2,9 +2,11 @@
 #define WORLD_H
 
 #include "player.h"
+#include "map.h"
 #include "protocol.h"
 
 typedef struct {
+    GameMap map;
     Player players[MAX_PLAYERS];
     uint32_t next_player_id;
 } World;

@@ -5,6 +5,7 @@
 #include <raylib.h>
 
 #include "protocol.h"
+#include "game.h"
 
 /* Test ENet : connexion a un serveur sur 127.0.0.1:GAME_PORT,
    envoi d'un paquet, puis deconnexion propre.
@@ -72,7 +73,7 @@ int main(int argc, char **argv)
 
     test_enet();
 
-    InitWindow(800, 450, "Game ISEN - test raylib");
+    InitWindow(800, 450, "Game ISEN - exploration");
     if (!IsWindowReady())
     {
         fprintf(stderr, "raylib: impossible d'ouvrir la fenetre.\n");
@@ -80,19 +81,7 @@ int main(int argc, char **argv)
     }
     SetTargetFPS(60);
 
-    int frames = 0;
-    /* fermeture auto apres 300 frames (~5 s) pour tester sans interaction */
-    while (!WindowShouldClose() && frames < 300)
-    {
-        frames++;
-        BeginDrawing();
-        ClearBackground(RAYWHITE);
-        DrawText("raylib fonctionne !", 280, 220, 20, DARKGRAY);
-        DrawRectangle(frames % 700 + 50, 100, 50, 50, RED);
-        EndDrawing();
-    }
-
+    game_run();
     CloseWindow();
-    printf("raylib OK: fenetre ouverte puis fermee proprement (%d frames)\n", frames);
     return EXIT_SUCCESS;
 }

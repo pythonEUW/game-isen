@@ -28,10 +28,12 @@ endif()
 
 add_library(shared STATIC
     shared/src/protocol.c
+    shared/game/map.c
 )
 
 target_include_directories(shared PUBLIC
     shared/include
+    shared/game
 )
 
 # ==========================================
