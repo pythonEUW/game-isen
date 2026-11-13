@@ -1,5 +1,6 @@
 #include <enet/enet.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include "../include/network_server.h"
 #include "../../shared/include/protocol.h"
@@ -19,7 +20,6 @@ int network_server_init(NetworkServer *network)
     }
 
     ENetAddress address;
-    ENetHost * server;
 
     address.host = ENET_HOST_ANY;
     address.port = GAME_PORT;
@@ -62,6 +62,7 @@ int network_server_poll(NetworkServer *network, World *world)
             Player *player = world_add_player(world);
             if (player == NULL) {
                 printf("Serveur plein, connexion ignoree\n");
+                enet_peer_disconnect(event.peer, 0);
                 break;
             }
             event.peer->data = (void *)(uintptr_t)player->id;
@@ -84,10 +85,7 @@ int network_server_poll(NetworkServer *network, World *world)
         }
 
         case ENET_EVENT_TYPE_RECEIVE: {
-            printf("Paquet recu : %zu octets\n",
-                   event.packet->dataLength);
-
-            if (event.packet->dataLength >= sizeof(PlayerInputPacket)) {
+            if (event.packet->dataLength == sizeof(PlayerInputPacket)) {
                 PlayerInputPacket *input =
                     (PlayerInputPacket *)event.packet->data;
 
@@ -98,8 +96,7 @@ int network_server_poll(NetworkServer *network, World *world)
                     if (player != NULL) {
                         player->input_x = input->input_x;
                         player->input_y = input->input_y;
-                        player_update(player);
-                        network_broadcast_player_state(network, player);
+
                     }
                 }
             }

@@ -1,10 +1,8 @@
 #include "game.h"
 #include "map.h"
+#include "protocol.h"
 #include <math.h>
 #include <raylib.h>
-
-#define SCREEN_W 800
-#define SCREEN_H 450
 
 void game_run(NetworkClient *nc)
 {
@@ -15,21 +13,32 @@ void game_run(NetworkClient *nc)
     camera.zoom = 1.0f;
     SetTargetFPS(60);
 
-    (void)nc; /* le reseau sera utilise ici plus tard */
-    network_client_send(nc, "Client a lancer le jeu");
+
 
 
     while (!WindowShouldClose() && !IsKeyPressed(KEY_ESCAPE)) {
         network_client_poll(nc); /* entretient la connexion et lit les reponses */
 
 
-        //TODO: Delete this code and replace it with a proper game loop that handles player input, updates the game state, and renders the scene.
         float dx = (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) -
                    (IsKeyDown(KEY_A) || IsKeyDown(KEY_Q) || IsKeyDown(KEY_LEFT));
         float dy = (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN)) -
                    (IsKeyDown(KEY_W) || IsKeyDown(KEY_Z) || IsKeyDown(KEY_UP));
         float length = sqrtf(dx * dx + dy * dy);
         if (length > 1.0f) { dx /= length; dy /= length; }
+        if (nc->peer != NULL) {
+            PlayerInputPacket input = {.type = PACKET_PLAYER_INPUT,
+                                      .input_x = (int8_t)dx, .input_y = (int8_t)dy};
+            // Send raw directions; the server normalizes diagonal movement.
+            input.input_x = (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) -
+                (IsKeyDown(KEY_A) || IsKeyDown(KEY_Q) || IsKeyDown(KEY_LEFT));
+            input.input_y = (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN)) -
+                (IsKeyDown(KEY_W) || IsKeyDown(KEY_Z) || IsKeyDown(KEY_UP));
+            ENetPacket *packet = enet_packet_create(&input, sizeof(input), ENET_PACKET_FLAG_RELIABLE);
+            if (packet != NULL && enet_peer_send(nc->peer, 0, packet) < 0)
+                enet_packet_destroy(packet);
+            enet_host_flush(nc->host);
+        }
         float dt = fminf(GetFrameTime(), 0.1f);
         map_move_circle(&map, &player.x, &player.y,
                         dx * 200.0f * dt, dy * 200.0f * dt, PLAYER_RADIUS);
@@ -42,12 +51,6 @@ void game_run(NetworkClient *nc)
         BeginDrawing();
         ClearBackground(BLACK);
         
-        DrawText("LE JEU", SCREEN_W / 2 - MeasureText("LE JEU", 40) / 2, 180, 40, RAYWHITE);
-        DrawText("Echap pour revenir au menu",
-                 SCREEN_W / 2 - MeasureText("Echap pour revenir au menu", 16) / 2,
-                 SCREEN_H - 50, 16, LIGHTGRAY);
-
-
         BeginMode2D(camera);
         for (int y = 0; y < MAP_HEIGHT; y++) {
             for (int x = 0; x < MAP_WIDTH; x++) {
@@ -61,7 +64,16 @@ void game_run(NetworkClient *nc)
         DrawCircleV(player, PLAYER_RADIUS, SKYBLUE);
         DrawCircleLines((int)player.x, (int)player.y, PLAYER_RADIUS, WHITE);
         EndMode2D();
+        DrawRectangle(0, 0, GetScreenWidth(), 36, Fade(BLACK, 0.75f));
+        DrawText("ZQSD / WASD / Fleches - Echap : menu", 12, 10, 18, WHITE);
         
         EndDrawing();
+    }
+    if (nc->peer != NULL) {
+        PlayerInputPacket stop = {.type = PACKET_PLAYER_INPUT};
+        ENetPacket *packet = enet_packet_create(&stop, sizeof(stop), ENET_PACKET_FLAG_RELIABLE);
+        if (packet != NULL && enet_peer_send(nc->peer, 0, packet) < 0)
+            enet_packet_destroy(packet);
+        enet_host_flush(nc->host);
     }
 }

@@ -14,10 +14,11 @@ static const char *ITEM_LABELS[NB_ITEMS] = {
     "Quitter",
 };
 
-static void placeholder_screen(const char *title, const char *line1, const char *line2)
+static void placeholder_screen(NetworkClient *nc, const char *title, const char *line1, const char *line2)
 {
     while (!WindowShouldClose() && !IsKeyPressed(KEY_ESCAPE))
     {
+        network_client_poll(nc);
         BeginDrawing();
         ClearBackground(RAYWHITE);
         DrawText(title, SCREEN_W / 2 - MeasureText(title, 40) / 2, 100, 40, DARKGRAY);
@@ -29,12 +30,13 @@ static void placeholder_screen(const char *title, const char *line1, const char 
     }
 }
 
-MenuAction run_menu(void)
+MenuAction run_menu(NetworkClient *nc)
 {
     int selected = 0;
 
     while (!WindowShouldClose())
     {
+        network_client_poll(nc);
         if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W))
             selected = (selected + NB_ITEMS - 1) % NB_ITEMS;
         if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S))
@@ -47,16 +49,17 @@ MenuAction run_menu(void)
             case 0:
                 return MENU_ACTION_PLAY;
             case 1:
-                placeholder_screen("Options", "(a implementer)", "");
+                placeholder_screen(nc, "Options", "(a implementer)", "");
                 break;
             case 2:
-                placeholder_screen("Credits", "Game ISEN - Louison, Nassim, Luke, Lukas", "");
+                placeholder_screen(nc, "Credits", "Game ISEN - Louison, Nassim, Luke, Lukas", "");
                 break;
             case 3:
                 return MENU_ACTION_QUIT;
             }
         }
 
+        network_client_poll(nc);
         BeginDrawing();
         ClearBackground(RAYWHITE);
 

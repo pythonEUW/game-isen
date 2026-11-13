@@ -22,6 +22,9 @@ Player *world_add_player(World *world)
                         world->next_player_id++
             );
 
+            // World placement and movement speed are configured outside player.c.
+            player->pos = (Vector2){100.0f, 100.0f};
+            player->speed = 200.0f;
             return player;
         }
     }
@@ -51,19 +54,23 @@ void world_remove_player(World *world, uint32_t id)
 
 void world_update(World *world, float dt)
 {
+    if (!isfinite(dt) || dt <= 0.0f)
+        return;
     for (int i = 0; i < MAX_PLAYERS; i++) {
         Player *player = &world->players[i];
-        if (!player->active || !isfinite(dt) || dt <= 0.0f)
+        if (!player->active)
             continue;
+
+        // Preserve player_update's displacement calculation. Use a copy to
+        // convert speed to this frame's distance, then resolve map collisions.
+        Player next = *player;
         float dx = player->input_x;
         float dy = player->input_y;
         float length = sqrtf(dx * dx + dy * dy);
-        if (length > 1.0f) {
-            dx /= length;
-            dy /= length;
-        }
-        map_move_circle(&world->map, &player->x, &player->y,
-                        dx * player->speed * dt,
-                        dy * player->speed * dt, PLAYER_RADIUS);
+        next.speed *= dt / fmaxf(1.0f, length);
+        player_update(&next);
+        map_move_circle(&world->map, &player->pos.x, &player->pos.y,
+                        next.pos.x - player->pos.x,
+                        next.pos.y - player->pos.y, PLAYER_RADIUS);
     }
 }

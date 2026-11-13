@@ -35,6 +35,7 @@ int network_client_connect(NetworkClient *nc, const char *address, uint16_t port
     }
 
     printf("ENet: serveur non atteignable sur %s:%d\n", address, port);
+    enet_peer_reset(nc->peer);
     nc->peer = NULL;
     return -1;
 }
@@ -62,8 +63,6 @@ int network_client_poll(NetworkClient *nc)
         switch (event.type)
         {
         case ENET_EVENT_TYPE_RECEIVE:
-            printf("Recu du serveur : %.*s\n",
-                   (int)event.packet->dataLength, (char *)event.packet->data);
             enet_packet_destroy(event.packet);
             received = 1;
             break;
@@ -88,6 +87,8 @@ void network_client_disconnect(NetworkClient *nc)
         while (enet_host_service(nc->host, &event, 1000) > 0 &&
                event.type != ENET_EVENT_TYPE_DISCONNECT)
         {
+            if (event.type == ENET_EVENT_TYPE_RECEIVE)
+                enet_packet_destroy(event.packet);
         }
         nc->peer = NULL;
     }
