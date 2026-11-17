@@ -1,6 +1,8 @@
 #ifndef MENU_H
 #define MENU_H
 
+#include "network_client.h"
+
 typedef enum
 {
     MENU_ACTION_PLAY,
@@ -9,6 +11,6 @@ typedef enum
 
 /* Affiche le menu principal et boucle jusqu'a un choix.
    Retourne MENU_ACTION_PLAY ou MENU_ACTION_QUIT. */
-MenuAction run_menu(void);
+MenuAction run_menu(NetworkClient *nc);
 
 #endif

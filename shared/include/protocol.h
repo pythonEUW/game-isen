@@ -2,30 +2,35 @@
 #define PROTOCOL_H
 
 #include <stdint.h>
-#include "game_rules.h"
 
-#define GAME_PORT          7777
-#define MAX_PLAYERS        4
+#define GAME_PORT 7777
+#define MAX_PLAYERS 4
 #define ENET_CHANNEL_COUNT 2
-#define CHANNEL_RELIABLE   0
-#define CHANNEL_UNRELIABLE 1
 
 typedef enum {
-    MSG_INPUT = 1,
-    MSG_WELCOME,
-    MSG_WORLD_STATE,
-} MessageType;
+    PACKET_PLAYER_STATE = 1,
+    PACKET_PLAYER_INPUT = 2,
+    PACKET_WELCOME = 3
+} PacketType;
 
 typedef struct {
-    int up, down, left, right;
-} PlayerInput;
+    uint8_t type;
+    uint32_t id;
+    float x;
+    float y;
+    int32_t health;
+    uint8_t active;
+} PlayerStatePacket;
 
-typedef struct { uint8_t type; PlayerInput input; } MsgInput;
-typedef struct { uint8_t type; uint8_t player_id; } MsgWelcome;
 typedef struct {
-    uint8_t     type;
-    uint8_t     count;
-    PlayerState players[MAX_PLAYERS];
-} MsgWorldState;
+    uint8_t type;
+    int8_t input_x;
+    int8_t input_y;
+} PlayerInputPacket;
+
+typedef struct {
+    uint8_t type;
+    uint32_t id;
+} WelcomePacket;
 
 #endif

@@ -8,36 +8,31 @@
 #include "menu.h"
 #include "game.h"
 
-#define SCREEN_W 800
-#define SCREEN_H 450
-
-int main(void)
+int main(int argc, char **argv)
 {
-    if (enet_initialize() != 0)
-    {
+    if (enet_initialize() != 0) {
         fprintf(stderr, "ENet: erreur d'initialisation.\n");
         return EXIT_FAILURE;
     }
     atexit(enet_deinitialize);
-
     NetworkClient nc = {0};
-    // lance la connexion si impossible on ferme la fenetre 
-    if (network_client_connect(&nc, "127.0.0.1", GAME_PORT) != 0){
-        fprintf(stderr, "Client: connexion impossible .\n");
-        CloseWindow();
+    if (network_client_connect(&nc, argc > 1 ? argv[1] : "127.0.0.1", GAME_PORT) != 0)
+        fprintf(stderr, "Serveur absent : exploration locale disponible.\n");
+
+    InitWindow(800, 450, "Game ISEN");
+    if (!IsWindowReady()) {
+        network_client_disconnect(&nc);
         return EXIT_FAILURE;
     }
-    InitWindow(SCREEN_W, SCREEN_H, "Game ISEN");
+    // Escape belongs to the menu/game navigation; the close button still quits.
+    SetExitKey(KEY_NULL);
     SetTargetFPS(60);
-    //lance menu et jeu si bouton jouer appuyé
-    MenuAction action = MENU_ACTION_PLAY;
-    while (action == MENU_ACTION_PLAY && !WindowShouldClose())
-    {
-        action = run_menu();
-        if (action == MENU_ACTION_PLAY)
-            run_game(&nc);
+    while (!WindowShouldClose()) {
+        if (run_menu(&nc) == MENU_ACTION_QUIT)
+            break;
+        if (!WindowShouldClose())
+            game_run(&nc);
     }
-
     network_client_disconnect(&nc);
     CloseWindow();
     return EXIT_SUCCESS;
