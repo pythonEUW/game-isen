@@ -1,0 +1,11 @@
+#ifndef GAME_CONFIG_H
+#define GAME_CONFIG_H
+
+#define GAME_TICK_RATE 60
+
+#define PLAYER_SPEED 200.0f
+#define PLAYER_SPAWN_X 100.0f
+#define PLAYER_SPAWN_Y 100.0f
+#define PLAYER_SPAWN_SPACING 48.0f
+
+#endif

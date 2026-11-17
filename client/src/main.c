@@ -3,6 +3,7 @@
 #include <enet/enet.h>
 #include <raylib.h>
 
+#include "game_config.h"
 #include "protocol.h"
 #include "network_client.h"
 #include "menu.h"
@@ -26,7 +27,7 @@ int main(int argc, char **argv)
     }
     // Escape belongs to the menu/game navigation; the close button still quits.
     SetExitKey(KEY_NULL);
-    SetTargetFPS(60);
+    SetTargetFPS(GAME_TICK_RATE);
     while (!WindowShouldClose()) {
         if (run_menu(&nc) == MENU_ACTION_QUIT)
             break;

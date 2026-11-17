@@ -1,5 +1,6 @@
 
 #include "server.h"
+#include "game_config.h"
 #include "network_server.h"
 #include "world.h"
 
@@ -30,7 +31,7 @@ int server_run(void)
 
     enet_uint32 previous = enet_time_get();
     float accumulator = 0.0f;
-    const float tick = 1.0f / 60.0f;
+    const float tick = 1.0f / GAME_TICK_RATE;
     while (running) {
         // Plus tard :
         // player_update();

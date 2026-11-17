@@ -1,6 +1,8 @@
 
 #include "world.h"
 
+#include "game_config.h"
+
 #include <raylib.h>
 #include <stddef.h>
 #include <math.h>
@@ -23,8 +25,11 @@ Player *world_add_player(World *world)
             );
 
             // World placement and movement speed are configured outside player.c.
-            player->pos = (Vector2){100.0f + i * 48.0f, 100.0f};
-            player->speed = 200.0f;
+            player->pos = (Vector2){
+                PLAYER_SPAWN_X + i * PLAYER_SPAWN_SPACING,
+                PLAYER_SPAWN_Y
+            };
+            player->speed = PLAYER_SPEED;
             return player;
         }
     }

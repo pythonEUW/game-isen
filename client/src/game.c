@@ -1,4 +1,5 @@
 #include "game.h"
+#include "game_config.h"
 #include "map.h"
 #include "protocol.h"
 #include <math.h>
@@ -8,10 +9,10 @@ void game_run(NetworkClient *nc)
 {
     GameMap map;
     map_init(&map, MAP_DEFAULT_SEED);
-    Vector2 player = {100.0f, 100.0f};
+    Vector2 player = {PLAYER_SPAWN_X, PLAYER_SPAWN_Y};
     Camera2D camera = {0};
     camera.zoom = 1.0f;
-    SetTargetFPS(60);
+    SetTargetFPS(GAME_TICK_RATE);
 
 
 
@@ -34,7 +35,7 @@ void game_run(NetworkClient *nc)
             if (length > 1.0f) { dx /= length; dy /= length; }
             float dt = fminf(GetFrameTime(), 0.1f);
             map_move_circle(&map, &player.x, &player.y,
-                            dx * 200.0f * dt, dy * 200.0f * dt, PLAYER_RADIUS);
+                            dx * PLAYER_SPEED * dt, dy * PLAYER_SPEED * dt, PLAYER_RADIUS);
         }
         camera.offset = (Vector2){GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f};
         camera.target.x = fmaxf(camera.offset.x,
