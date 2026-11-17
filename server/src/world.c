@@ -93,6 +93,29 @@ void world_remove_enemy(World *world, uint32_t id)
         enemy->active = false;
 }
 
+static Player *world_find_closest_player(World *world, Vector2 position)
+{
+    Player *closest = NULL;
+    float closest_distance = 0.0f;
+
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        Player *player = &world->players[i];
+        if (!player->active)
+            continue;
+
+        float dx = player->pos.x - position.x;
+        float dy = player->pos.y - position.y;
+        float distance = dx * dx + dy * dy;
+
+        if (closest == NULL || distance < closest_distance) {
+            closest = player;
+            closest_distance = distance;
+        }
+    }
+
+    return closest;
+}
+
 void world_update(World *world, float dt)
 {
     if (!isfinite(dt) || dt <= 0.0f)
@@ -113,5 +136,28 @@ void world_update(World *world, float dt)
         map_move_circle(&world->map, &player->pos.x, &player->pos.y,
                         next.pos.x - player->pos.x,
                         next.pos.y - player->pos.y, PLAYER_RADIUS);
+    }
+
+    for (int i = 0; i < MAX_ENEMIES; i++) {
+        Enemy *enemy = &world->enemies[i];
+        if (!enemy->active)
+            continue;
+
+        Player *target = world_find_closest_player(world, enemy->pos);
+        if (target == NULL)
+            continue;
+
+        float dx = target->pos.x - enemy->pos.x;
+        float dy = target->pos.y - enemy->pos.y;
+        float distance = sqrtf(dx * dx + dy * dy);
+        if (!isfinite(distance) || distance <= 0.0f)
+            continue;
+
+        map_move_circle(&world->map,
+                        &enemy->pos.x,
+                        &enemy->pos.y,
+                        dx / distance * enemy->speed * dt,
+                        dy / distance * enemy->speed * dt,
+                        ENEMY_RADIUS);
     }
 }
