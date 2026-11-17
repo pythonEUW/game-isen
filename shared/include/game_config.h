@@ -8,4 +8,8 @@
 #define PLAYER_SPAWN_Y 100.0f
 #define PLAYER_SPAWN_SPACING 48.0f
 
+#define MAX_ENEMIES 32
+#define ENEMY_SPEED 80.0f
+#define ENEMY_HEALTH 100
+
 #endif
