@@ -66,6 +66,10 @@ int network_server_poll(NetworkServer *network, World *world)
                 break;
             }
             event.peer->data = (void *)(uintptr_t)player->id;
+            WelcomePacket welcome = {.type = PACKET_WELCOME, .id = player->id};
+            ENetPacket *greeting = enet_packet_create(&welcome, sizeof(welcome), ENET_PACKET_FLAG_RELIABLE);
+            if (greeting != NULL && enet_peer_send(event.peer, 1, greeting) < 0)
+                enet_packet_destroy(greeting);
 
             printf(
                 "Player [%u] | X: %.2f | Y: %.2f | Speed: %.2f | HP: %d | Active: %d\n",

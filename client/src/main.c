@@ -8,7 +8,7 @@
 #include "menu.h"
 #include "game.h"
 
-int main(void)
+int main(int argc, char **argv)
 {
     if (enet_initialize() != 0) {
         fprintf(stderr, "ENet: erreur d'initialisation.\n");
@@ -16,7 +16,7 @@ int main(void)
     }
     atexit(enet_deinitialize);
     NetworkClient nc = {0};
-    if (network_client_connect(&nc, "127.0.0.1", GAME_PORT) != 0)
+    if (network_client_connect(&nc, argc > 1 ? argv[1] : "127.0.0.1", GAME_PORT) != 0)
         fprintf(stderr, "Serveur absent : exploration locale disponible.\n");
 
     InitWindow(800, 450, "Game ISEN");

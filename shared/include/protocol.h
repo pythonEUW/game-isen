@@ -9,7 +9,8 @@
 
 typedef enum {
     PACKET_PLAYER_STATE = 1,
-    PACKET_PLAYER_INPUT = 2
+    PACKET_PLAYER_INPUT = 2,
+    PACKET_WELCOME = 3
 } PacketType;
 
 typedef struct {
@@ -26,5 +27,10 @@ typedef struct {
     int8_t input_x;
     int8_t input_y;
 } PlayerInputPacket;
+
+typedef struct {
+    uint8_t type;
+    uint32_t id;
+} WelcomePacket;
 
 #endif

@@ -2,9 +2,12 @@
 #define NETWORK_CLIENT_H
 
 #include <enet/enet.h>
+#include "protocol.h"
 
 typedef struct
 {
+    uint32_t player_id;
+    PlayerStatePacket players[MAX_PLAYERS];
     ENetHost *host;
     ENetPeer *peer; /* NULL si pas connecte */
 } NetworkClient;
@@ -19,6 +22,8 @@ int network_client_send(NetworkClient *nc, const char *msg);
 /* A appeler a chaque frame : traite les evenements ENet (reception, deconnexion).
    Retourne 1 si un paquet a ete recu, 0 sinon, -1 si deconnecte. */
 int network_client_poll(NetworkClient *nc);
+
+int network_client_send_input(NetworkClient *nc, int8_t x, int8_t y);
 
 /* Deconnecte proprement et detruit le host. */
 void network_client_disconnect(NetworkClient *nc);

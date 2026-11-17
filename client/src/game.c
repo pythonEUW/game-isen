@@ -24,24 +24,18 @@ void game_run(NetworkClient *nc)
                    (IsKeyDown(KEY_A) || IsKeyDown(KEY_Q) || IsKeyDown(KEY_LEFT));
         float dy = (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN)) -
                    (IsKeyDown(KEY_W) || IsKeyDown(KEY_Z) || IsKeyDown(KEY_UP));
-        float length = sqrtf(dx * dx + dy * dy);
-        if (length > 1.0f) { dx /= length; dy /= length; }
+        network_client_send_input(nc, (int8_t)dx, (int8_t)dy);
         if (nc->peer != NULL) {
-            PlayerInputPacket input = {.type = PACKET_PLAYER_INPUT,
-                                      .input_x = (int8_t)dx, .input_y = (int8_t)dy};
-            // Send raw directions; the server normalizes diagonal movement.
-            input.input_x = (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) -
-                (IsKeyDown(KEY_A) || IsKeyDown(KEY_Q) || IsKeyDown(KEY_LEFT));
-            input.input_y = (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN)) -
-                (IsKeyDown(KEY_W) || IsKeyDown(KEY_Z) || IsKeyDown(KEY_UP));
-            ENetPacket *packet = enet_packet_create(&input, sizeof(input), ENET_PACKET_FLAG_RELIABLE);
-            if (packet != NULL && enet_peer_send(nc->peer, 0, packet) < 0)
-                enet_packet_destroy(packet);
-            enet_host_flush(nc->host);
+            for (int i = 0; i < MAX_PLAYERS; i++)
+                if (nc->players[i].active && nc->players[i].id == nc->player_id)
+                    player = (Vector2){nc->players[i].x, nc->players[i].y};
+        } else {
+            float length = sqrtf(dx * dx + dy * dy);
+            if (length > 1.0f) { dx /= length; dy /= length; }
+            float dt = fminf(GetFrameTime(), 0.1f);
+            map_move_circle(&map, &player.x, &player.y,
+                            dx * 200.0f * dt, dy * 200.0f * dt, PLAYER_RADIUS);
         }
-        float dt = fminf(GetFrameTime(), 0.1f);
-        map_move_circle(&map, &player.x, &player.y,
-                        dx * 200.0f * dt, dy * 200.0f * dt, PLAYER_RADIUS);
         camera.offset = (Vector2){GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f};
         camera.target.x = fmaxf(camera.offset.x,
             fminf(player.x, MAP_WIDTH * TILE_SIZE - camera.offset.x));
@@ -61,19 +55,28 @@ void game_run(NetworkClient *nc)
                 DrawRectangle(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE, color);
             }
         }
-        DrawCircleV(player, PLAYER_RADIUS, SKYBLUE);
-        DrawCircleLines((int)player.x, (int)player.y, PLAYER_RADIUS, WHITE);
+        int count = 0;
+        if (nc->peer != NULL) {
+            const Color colors[MAX_PLAYERS] = {SKYBLUE, ORANGE, LIME, VIOLET};
+            for (int i = 0; i < MAX_PLAYERS; i++) {
+                const PlayerStatePacket *other = &nc->players[i];
+                if (!other->active) continue;
+                count++;
+                bool self = other->id == nc->player_id;
+                Vector2 pos = {other->x, other->y};
+                DrawCircleV(pos, PLAYER_RADIUS, colors[(other->id - 1) % MAX_PLAYERS]);
+                DrawCircleLines((int)pos.x, (int)pos.y, PLAYER_RADIUS, self ? WHITE : DARKGRAY);
+                DrawText(TextFormat("J%u%s", other->id, self ? " (toi)" : ""),
+                         (int)pos.x - 18, (int)pos.y - 30, 16, WHITE);
+            }
+        } else {
+            DrawCircleV(player, PLAYER_RADIUS, SKYBLUE);
+        }
         EndMode2D();
-        DrawRectangle(0, 0, GetScreenWidth(), 36, Fade(BLACK, 0.75f));
-        DrawText("ZQSD / WASD / Fleches - Echap : menu", 12, 10, 18, WHITE);
-        
+                
+        DrawText(nc->peer != NULL ? TextFormat("En ligne : %d/%d joueurs", count, MAX_PLAYERS) :
+                 "Hors ligne - exploration locale", 12, 34, 16, LIGHTGRAY);
         EndDrawing();
     }
-    if (nc->peer != NULL) {
-        PlayerInputPacket stop = {.type = PACKET_PLAYER_INPUT};
-        ENetPacket *packet = enet_packet_create(&stop, sizeof(stop), ENET_PACKET_FLAG_RELIABLE);
-        if (packet != NULL && enet_peer_send(nc->peer, 0, packet) < 0)
-            enet_packet_destroy(packet);
-        enet_host_flush(nc->host);
-    }
+    network_client_send_input(nc, 0, 0);
 }

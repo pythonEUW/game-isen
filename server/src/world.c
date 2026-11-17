@@ -23,7 +23,7 @@ Player *world_add_player(World *world)
             );
 
             // World placement and movement speed are configured outside player.c.
-            player->pos = (Vector2){100.0f, 100.0f};
+            player->pos = (Vector2){100.0f + i * 48.0f, 100.0f};
             player->speed = 200.0f;
             return player;
         }
