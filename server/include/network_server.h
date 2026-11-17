@@ -16,6 +16,12 @@ void network_broadcast_player_state(
     NetworkServer *network,
     Player *player
 );
+
+void network_broadcast_enemy_state(
+    NetworkServer *network,
+    Enemy *enemy
+);
+
 void network_broadcast_world_state(
     NetworkServer *network,
     World *world

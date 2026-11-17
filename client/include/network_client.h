@@ -2,12 +2,14 @@
 #define NETWORK_CLIENT_H
 
 #include <enet/enet.h>
+#include "game_config.h"
 #include "protocol.h"
 
 typedef struct
 {
     uint32_t player_id;
     PlayerStatePacket players[MAX_PLAYERS];
+    EnemyStatePacket enemies[MAX_ENEMIES];
     ENetHost *host;
     ENetPeer *peer; /* NULL si pas connecte */
 } NetworkClient;

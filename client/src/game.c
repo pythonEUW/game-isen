@@ -70,6 +70,15 @@ void game_run(NetworkClient *nc)
                 DrawText(TextFormat("J%u%s", other->id, self ? " (toi)" : ""),
                          (int)pos.x - 18, (int)pos.y - 30, 16, WHITE);
             }
+            for (int i = 0; i < MAX_ENEMIES; i++) {
+                const EnemyStatePacket *enemy = &nc->enemies[i];
+                if (!enemy->active) continue;
+                Vector2 pos = {enemy->x, enemy->y};
+                DrawCircleV(pos, ENEMY_RADIUS, RED);
+                DrawCircleLines((int)pos.x, (int)pos.y, ENEMY_RADIUS, MAROON);
+                DrawText(TextFormat("E%u", enemy->id),
+                         (int)pos.x - 10, (int)pos.y - 28, 16, WHITE);
+            }
         } else {
             DrawCircleV(player, PLAYER_RADIUS, SKYBLUE);
         }

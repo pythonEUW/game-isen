@@ -10,6 +10,7 @@ int network_client_connect(NetworkClient *nc, const char *address, uint16_t port
 {
     nc->player_id = 0;
     memset(nc->players, 0, sizeof(nc->players));
+    memset(nc->enemies, 0, sizeof(nc->enemies));
     nc->host = enet_host_create(NULL, 1, ENET_CHANNEL_COUNT, 0, 0);
     if (nc->host == NULL)
     {
@@ -84,6 +85,19 @@ int network_client_poll(NetworkClient *nc)
                             if (!nc->players[i].active) { slot = i; break; }
                     if (slot >= 0) nc->players[slot] = state;
                 }
+            } else if (event.packet->dataLength == sizeof(EnemyStatePacket) &&
+                       event.packet->data[0] == PACKET_ENEMY_STATE) {
+                EnemyStatePacket state;
+                memcpy(&state, event.packet->data, sizeof(state));
+                if (state.id != 0 && isfinite(state.x) && isfinite(state.y)) {
+                    int slot = -1;
+                    for (int i = 0; i < MAX_ENEMIES; i++)
+                        if (nc->enemies[i].id == state.id) { slot = i; break; }
+                    if (slot < 0 && state.active)
+                        for (int i = 0; i < MAX_ENEMIES; i++)
+                            if (!nc->enemies[i].active) { slot = i; break; }
+                    if (slot >= 0) nc->enemies[slot] = state;
+                }
             }
             enet_packet_destroy(event.packet);
             received = 1;
@@ -93,6 +107,7 @@ int network_client_poll(NetworkClient *nc)
             nc->peer = NULL;
             nc->player_id = 0;
             memset(nc->players, 0, sizeof(nc->players));
+            memset(nc->enemies, 0, sizeof(nc->enemies));
             return -1;
         default:
             break;

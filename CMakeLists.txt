@@ -66,6 +66,7 @@ add_executable(server
     server/src/main.c
     server/src/server.c
     server/src/network_server.c
+    server/src/enemy.c
     server/src/world.c
     server/src/player.c
 )
