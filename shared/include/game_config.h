@@ -11,5 +11,8 @@
 #define MAX_ENEMIES 32
 #define ENEMY_SPEED 80.0f
 #define ENEMY_HEALTH 100
+#define ENEMY_RADIUS 12.0f
+#define ENEMY_SPAWN_X 300.0f
+#define ENEMY_SPAWN_Y 200.0f
 
 #endif

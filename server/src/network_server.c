@@ -170,6 +170,30 @@ void network_broadcast_player_state(
         enet_host_broadcast(network->host, 1, packet);
 }
 
+void network_broadcast_enemy_state(
+    NetworkServer *network,
+    Enemy *enemy
+)
+{
+    EnemyStatePacket state = {
+        .type = PACKET_ENEMY_STATE,
+        .id = enemy->id,
+        .x = enemy->pos.x,
+        .y = enemy->pos.y,
+        .health = (int32_t)enemy->health,
+        .active = enemy->active
+    };
+
+    ENetPacket *packet = enet_packet_create(
+        &state,
+        sizeof(EnemyStatePacket),
+        ENET_PACKET_FLAG_RELIABLE
+    );
+
+    if (packet != NULL)
+        enet_host_broadcast(network->host, 1, packet);
+}
+
 void network_broadcast_world_state(
     NetworkServer *network,
     World *world
@@ -180,5 +204,11 @@ void network_broadcast_world_state(
 
         if (player->active)
             network_broadcast_player_state(network, player);
+    }
+    for (int i = 0; i < MAX_ENEMIES; i++) {
+        Enemy *enemy = &world->enemies[i];
+
+        if (enemy->active)
+            network_broadcast_enemy_state(network, enemy);
     }
 }

@@ -10,7 +10,8 @@
 typedef enum {
     PACKET_PLAYER_STATE = 1,
     PACKET_PLAYER_INPUT = 2,
-    PACKET_WELCOME = 3
+    PACKET_WELCOME = 3,
+    PACKET_ENEMY_STATE = 4
 } PacketType;
 
 typedef struct {
@@ -32,5 +33,14 @@ typedef struct {
     uint8_t type;
     uint32_t id;
 } WelcomePacket;
+
+typedef struct {
+    uint8_t type;
+    uint32_t id;
+    float x;
+    float y;
+    int32_t health;
+    uint8_t active;
+} EnemyStatePacket;
 
 #endif

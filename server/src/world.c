@@ -11,7 +11,9 @@ void world_init(World *world)
 {
     *world = (World){0};
     world->next_player_id = 1;
+    world->next_enemy_id = 1;
     map_init(&world->map, MAP_DEFAULT_SEED);
+    world_add_enemy(world);
 }
 
 Player *world_add_player(World *world)
@@ -55,6 +57,40 @@ void world_remove_player(World *world, uint32_t id)
 
     if (player)
         player->active = false;
+}
+
+Enemy *world_add_enemy(World *world)
+{
+    for (int i = 0; i < MAX_ENEMIES; i++) {
+        if (!world->enemies[i].active) {
+            Enemy *enemy = &world->enemies[i];
+            enemy_init(enemy, world->next_enemy_id++);
+            enemy->pos = (Vector2){ENEMY_SPAWN_X, ENEMY_SPAWN_Y};
+            return enemy;
+        }
+    }
+
+    return NULL;
+}
+
+Enemy *world_find_enemy(World *world, uint32_t id)
+{
+    for (int i = 0; i < MAX_ENEMIES; i++) {
+        Enemy *enemy = &world->enemies[i];
+
+        if (enemy->active && enemy->id == id)
+            return enemy;
+    }
+
+    return NULL;
+}
+
+void world_remove_enemy(World *world, uint32_t id)
+{
+    Enemy *enemy = world_find_enemy(world, id);
+
+    if (enemy)
+        enemy->active = false;
 }
 
 void world_update(World *world, float dt)
