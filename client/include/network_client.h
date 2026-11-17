@@ -2,12 +2,19 @@
 #define NETWORK_CLIENT_H
 
 #include <enet/enet.h>
+#include <stdbool.h>
 #include "protocol.h"
 
 typedef struct
 {
     uint32_t player_id;
     PlayerStatePacket players[MAX_PLAYERS];
+
+    /* Offre de level up en attente (recue via PACKET_LEVEL_UP). */
+    bool levelup_pending;
+    uint8_t level;
+    uint8_t levelup_choices[UPGRADE_CHOICES];
+
     ENetHost *host;
     ENetPeer *peer; /* NULL si pas connecte */
 } NetworkClient;
@@ -24,6 +31,9 @@ int network_client_send(NetworkClient *nc, const char *msg);
 int network_client_poll(NetworkClient *nc);
 
 int network_client_send_input(NetworkClient *nc, int8_t x, int8_t y);
+
+/* Envoie la carte choisie (0 .. UPGRADE_CHOICES-1) et efface l'offre en attente. */
+int network_client_send_upgrade_choice(NetworkClient *nc, uint8_t index);
 
 /* Deconnecte proprement et detruit le host. */
 void network_client_disconnect(NetworkClient *nc);

@@ -1,7 +1,9 @@
 #include "game.h"
+#include "levelup.h"
 #include "map.h"
 #include "protocol.h"
 #include <math.h>
+#include <stdio.h>
 #include <raylib.h>
 
 void game_run(NetworkClient *nc)
@@ -13,17 +15,41 @@ void game_run(NetworkClient *nc)
     camera.zoom = 1.0f;
     SetTargetFPS(60);
 
-
-
+    LevelUpScreen levelup = {0};
+    bool debug_offer = false;
+    uint8_t debug_choices[UPGRADE_CHOICES];
 
     while (!WindowShouldClose() && !IsKeyPressed(KEY_ESCAPE)) {
         network_client_poll(nc); /* entretient la connexion et lit les reponses */
 
+#ifndef NDEBUG
+        if (IsKeyPressed(KEY_F1) && !nc->levelup_pending && !debug_offer) {
+            upgrade_roll_choices(debug_choices);
+            debug_offer = true;
+        }
+#endif
 
-        float dx = (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) -
-                   (IsKeyDown(KEY_A) || IsKeyDown(KEY_Q) || IsKeyDown(KEY_LEFT));
-        float dy = (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN)) -
-                   (IsKeyDown(KEY_W) || IsKeyDown(KEY_Z) || IsKeyDown(KEY_UP));
+        float dx = 0.0f, dy = 0.0f;
+        bool choosing = nc->levelup_pending || debug_offer;
+        if (choosing) {
+            /* Pendant le choix, le joueur ne bouge plus (input 0,0 envoye au serveur). */
+            int picked = levelup_update(&levelup);
+            if (picked >= 0) {
+                if (debug_offer) {
+                    printf("[debug] carte choisie : %s\n",
+                           upgrade_name((UpgradeId)debug_choices[picked]));
+                    debug_offer = false;
+                } else {
+                    network_client_send_upgrade_choice(nc, (uint8_t)picked);
+                }
+                levelup.selected = 0;
+            }
+        } else {
+            dx = (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) -
+                 (IsKeyDown(KEY_A) || IsKeyDown(KEY_Q) || IsKeyDown(KEY_LEFT));
+            dy = (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN)) -
+                 (IsKeyDown(KEY_W) || IsKeyDown(KEY_Z) || IsKeyDown(KEY_UP));
+        }
         network_client_send_input(nc, (int8_t)dx, (int8_t)dy);
         if (nc->peer != NULL) {
             for (int i = 0; i < MAX_PLAYERS; i++)
@@ -76,6 +102,11 @@ void game_run(NetworkClient *nc)
                 
         DrawText(nc->peer != NULL ? TextFormat("En ligne : %d/%d joueurs", count, MAX_PLAYERS) :
                  "Hors ligne - exploration locale", 12, 34, 16, LIGHTGRAY);
+
+        if (debug_offer)
+            levelup_draw(&levelup, 0, debug_choices);
+        else if (nc->levelup_pending)
+            levelup_draw(&levelup, nc->level, nc->levelup_choices);
         EndDrawing();
     }
     network_client_send_input(nc, 0, 0);

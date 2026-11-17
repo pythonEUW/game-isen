@@ -45,6 +45,7 @@ add_executable(client
     client/src/menu.c
     client/src/game.c
     client/src/network_client.c
+    client/src/levelup.c
 )
 
 target_include_directories(client PRIVATE

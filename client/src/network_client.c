@@ -9,8 +9,10 @@
 int network_client_connect(NetworkClient *nc, const char *address, uint16_t port)
 {
     nc->player_id = 0;
+    nc->levelup_pending = false;
+    nc->level = 0;
     memset(nc->players, 0, sizeof(nc->players));
-    nc->host = enet_host_create(NULL, 1, ENET_CHANNEL_COUNT, 0, 0);
+    nc->host =enet_host_create(NULL, 1, ENET_CHANNEL_COUNT, 0, 0);
     if (nc->host == NULL)
     {
         fprintf(stderr, "ENet: impossible de creer le host client.\n");
@@ -71,6 +73,18 @@ int network_client_poll(NetworkClient *nc)
                 WelcomePacket welcome;
                 memcpy(&welcome, event.packet->data, sizeof(welcome));
                 nc->player_id = welcome.id;
+            } else if (event.packet->dataLength == sizeof(LevelUpPacket) &&
+                       event.packet->data[0] == PACKET_LEVEL_UP) {
+                LevelUpPacket lvl;
+                memcpy(&lvl, event.packet->data, sizeof(lvl));
+                bool valid = true;
+                for (int i = 0; i < UPGRADE_CHOICES; i++)
+                    if (lvl.choices[i] >= UPGRADE_COUNT) valid = false;
+                if (valid) {
+                    nc->level = lvl.level;
+                    memcpy(nc->levelup_choices, lvl.choices, sizeof(lvl.choices));
+                    nc->levelup_pending = true;
+                }
             } else if (event.packet->dataLength == sizeof(PlayerStatePacket) &&
                        event.packet->data[0] == PACKET_PLAYER_STATE) {
                 PlayerStatePacket state;
@@ -92,6 +106,7 @@ int network_client_poll(NetworkClient *nc)
             printf("Deconnecte par le serveur.\n");
             nc->peer = NULL;
             nc->player_id = 0;
+            nc->levelup_pending = false;
             memset(nc->players, 0, sizeof(nc->players));
             return -1;
         default:
@@ -131,6 +146,21 @@ int network_client_send_input(NetworkClient *nc, int8_t x, int8_t y)
     ENetPacket *packet = enet_packet_create(&input, sizeof(input), ENET_PACKET_FLAG_RELIABLE);
     if (packet == NULL) return -1;
     if (enet_peer_send(nc->peer, 0, packet) < 0) {
+        enet_packet_destroy(packet);
+        return -1;
+    }
+    enet_host_flush(nc->host);
+    return 0;
+}
+
+int network_client_send_upgrade_choice(NetworkClient *nc, uint8_t index)
+{
+    nc->levelup_pending = false;
+    if (nc->peer == NULL || index >= UPGRADE_CHOICES) return -1;
+    UpgradeChoicePacket choice = {.type = PACKET_UPGRADE_CHOICE, .index = index};
+    ENetPacket *packet = enet_packet_create(&choice, sizeof(choice), ENET_PACKET_FLAG_RELIABLE);
+    if (packet == NULL) return -1;
+    if (enet_peer_send(nc->peer, 1, packet) < 0) {
         enet_packet_destroy(packet);
         return -1;
     }
