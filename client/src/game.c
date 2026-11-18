@@ -16,6 +16,7 @@ void game_run(NetworkClient *nc)
     SetTargetFPS(60);
 
     LevelUpScreen levelup = {0};
+    levelup_load(&levelup);
     bool debug_offer = false;
     uint8_t debug_choices[UPGRADE_CHOICES];
 
@@ -29,11 +30,10 @@ void game_run(NetworkClient *nc)
         }
 #endif
 
-        float dx = 0.0f, dy = 0.0f;
-        bool choosing = nc->levelup_pending || debug_offer;
-        if (choosing) {
-            /* Pendant le choix, le joueur ne bouge plus (input 0,0 envoye au serveur). */
-            int picked = levelup_update(&levelup);
+        /* Choix de carte non bloquant : on continue a lire le deplacement. */
+        if (nc->levelup_pending || debug_offer) {
+            int picked = levelup_update(&levelup, debug_offer ? debug_choices
+                                                              : nc->levelup_choices);
             if (picked >= 0) {
                 if (debug_offer) {
                     printf("[debug] carte choisie : %s\n",
@@ -42,14 +42,12 @@ void game_run(NetworkClient *nc)
                 } else {
                     network_client_send_upgrade_choice(nc, (uint8_t)picked);
                 }
-                levelup.selected = 0;
             }
-        } else {
-            dx = (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) -
-                 (IsKeyDown(KEY_A) || IsKeyDown(KEY_Q) || IsKeyDown(KEY_LEFT));
-            dy = (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN)) -
-                 (IsKeyDown(KEY_W) || IsKeyDown(KEY_Z) || IsKeyDown(KEY_UP));
         }
+        float dx = (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) -
+                   (IsKeyDown(KEY_A) || IsKeyDown(KEY_Q) || IsKeyDown(KEY_LEFT));
+        float dy = (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN)) -
+                   (IsKeyDown(KEY_W) || IsKeyDown(KEY_Z) || IsKeyDown(KEY_UP));
         network_client_send_input(nc, (int8_t)dx, (int8_t)dy);
         if (nc->peer != NULL) {
             for (int i = 0; i < MAX_PLAYERS; i++)
@@ -109,5 +107,6 @@ void game_run(NetworkClient *nc)
             levelup_draw(&levelup, nc->level, nc->levelup_choices);
         EndDrawing();
     }
+    levelup_unload(&levelup);
     network_client_send_input(nc, 0, 0);
 }

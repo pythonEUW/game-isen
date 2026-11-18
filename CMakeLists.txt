@@ -52,6 +52,11 @@ target_include_directories(client PRIVATE
     client/include
 )
 
+# Chemin absolu des sprites : le client marche quel que soit le dossier de lancement.
+target_compile_definitions(client PRIVATE
+    ASSETS_DIR="${CMAKE_SOURCE_DIR}/assets"
+)
+
 target_link_libraries(client PRIVATE
     shared
     ${RAYLIB_TARGET}
