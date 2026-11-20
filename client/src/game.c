@@ -2,6 +2,7 @@
 #include "map.h"
 #include "protocol.h"
 #include <math.h>
+#include <stdio.h>
 #include <raylib.h>
 
 void game_run(NetworkClient *nc)
@@ -13,11 +14,20 @@ void game_run(NetworkClient *nc)
     camera.zoom = 1.0f;
     SetTargetFPS(60);
 
-
-
+    double last_stats_print = GetTime();
 
     while (!WindowShouldClose() && !IsKeyPressed(KEY_ESCAPE)) {
         network_client_poll(nc); /* entretient la connexion et lit les reponses */
+
+        if (nc->peer != NULL && GetTime() - last_stats_print >= 2.0) {
+            last_stats_print = GetTime();
+            for (int i = 0; i < MAX_PLAYERS; i++)
+                if (nc->players[i].active && nc->players[i].id == nc->player_id) {
+                    printf("Joueur %u | Niveau %d | XP %d\n",
+                           nc->player_id, nc->players[i].level, nc->players[i].xp);
+                    break;
+                }
+        }
 
 
         float dx = (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) -

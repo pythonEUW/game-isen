@@ -72,12 +72,13 @@ int network_server_poll(NetworkServer *network, World *world)
                 enet_packet_destroy(greeting);
 
             printf(
-                "Player [%u] | X: %.2f | Y: %.2f | Speed: %.2f | HP: %d | Active: %d\n",
+                "Player [%u] | X: %.2f | Y: %.2f | Speed: %.2f | HP: %d | LEVEL: %d | Active: %d\n",
                 player->id,
                 player->pos.x,
                 player->pos.y,
                 player->speed,
                 player->health,
+                player->level,
                 player->active
             );
 
@@ -100,6 +101,23 @@ int network_server_poll(NetworkServer *network, World *world)
                     if (player != NULL) {
                         player->input_x = input->input_x;
                         player->input_y = input->input_y;
+
+                        // Gain d'XP uniquement si le joueur se deplace.
+                        if (player->input_x != 0 || player->input_y != 0) {
+                            player->xp++;
+                            while ((long long)player->xp >=
+                                   xp_needed_for_level((int)player->level + 1)) {
+                                player->level++;
+                                printf("Joueur %u passe niveau %u\n",
+                                       player->id, player->level);
+                            }
+                        }                    if (player != NULL) {
+                            player->input_x = input->input_x;
+                            player->input_y = input->input_y;
+                            if(xp_to_next_level(player) <= 0) {
+                                player->level++;
+                            }
+                            player->xp++;
 
                     }
                 }
@@ -157,6 +175,8 @@ void network_broadcast_player_state(
         .x = player->pos.x,
         .y = player->pos.y,
         .health = player->health,
+        .level = player->level,
+        .xp = player->xp,
         .active = player->active
     };
 
