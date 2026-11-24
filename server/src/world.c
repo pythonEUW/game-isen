@@ -13,7 +13,9 @@ void world_init(World *world)
     world->next_player_id = 1;
     world->next_enemy_id = 1;
     map_init(&world->map, MAP_DEFAULT_SEED);
-    world_add_enemy(world);
+    world_add_enemy(world, ENEMY_TYPE_SKELETON);
+    world_add_enemy(world, ENEMY_TYPE_BAT);
+    world_add_enemy(world, ENEMY_TYPE_MINOTAUR);
 }
 
 Player *world_add_player(World *world)
@@ -59,13 +61,16 @@ void world_remove_player(World *world, uint32_t id)
         player->active = false;
 }
 
-Enemy *world_add_enemy(World *world)
+Enemy *world_add_enemy(World *world, EnemyType type)
 {
     for (int i = 0; i < MAX_ENEMIES; i++) {
         if (!world->enemies[i].active) {
             Enemy *enemy = &world->enemies[i];
-            enemy_init(enemy, world->next_enemy_id++);
-            enemy->pos = (Vector2){ENEMY_SPAWN_X, ENEMY_SPAWN_Y};
+            enemy_init(enemy, world->next_enemy_id++, type);
+            enemy->pos = (Vector2){
+                ENEMY_SPAWN_X + i * 48.0f,
+                ENEMY_SPAWN_Y
+            };
             return enemy;
         }
     }

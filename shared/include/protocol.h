@@ -1,6 +1,8 @@
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
 
+#include "enemy.h"
+
 #include <stdint.h>
 
 #define GAME_PORT 7777
@@ -40,6 +42,8 @@ typedef struct {
     float x;
     float y;
     int32_t health;
+    uint8_t enemy_type;
+    uint32_t level;
     uint8_t active;
 } EnemyStatePacket;
 

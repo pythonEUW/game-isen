@@ -74,10 +74,31 @@ void game_run(NetworkClient *nc)
                 const EnemyStatePacket *enemy = &nc->enemies[i];
                 if (!enemy->active) continue;
                 Vector2 pos = {enemy->x, enemy->y};
-                DrawCircleV(pos, ENEMY_RADIUS, RED);
-                DrawCircleLines((int)pos.x, (int)pos.y, ENEMY_RADIUS, MAROON);
-                DrawText(TextFormat("E%u", enemy->id),
-                         (int)pos.x - 10, (int)pos.y - 28, 16, WHITE);
+                const char *name;
+                Color color;
+                Color outline;
+                switch ((EnemyType)enemy->enemy_type) {
+                    case ENEMY_TYPE_BAT:
+                        name = "Chauve-souris";
+                        color = PURPLE;
+                        outline = VIOLET;
+                        break;
+                    case ENEMY_TYPE_MINOTAUR:
+                        name = "Minotaure";
+                        color = DARKBROWN;
+                        outline = BROWN;
+                        break;
+                    case ENEMY_TYPE_SKELETON:
+                    default:
+                        name = "Squelette";
+                        color = BEIGE;
+                        outline = RAYWHITE;
+                        break;
+                }
+                DrawCircleV(pos, ENEMY_RADIUS, color);
+                DrawCircleLines((int)pos.x, (int)pos.y, ENEMY_RADIUS, outline);
+                DrawText(TextFormat("%s - Nv.%u", name, enemy->level),
+                         (int)pos.x - 45, (int)pos.y - 28, 14, WHITE);
             }
         } else {
             DrawCircleV(player, PLAYER_RADIUS, SKYBLUE);

@@ -19,7 +19,7 @@ void world_init(World *world);
 Player *world_add_player(World *world);
 Player *world_find_player(World *world, uint32_t id);
 void world_remove_player(World *world, uint32_t id);
-Enemy *world_add_enemy(World *world);
+Enemy *world_add_enemy(World *world, EnemyType type);
 Enemy *world_find_enemy(World *world, uint32_t id);
 void world_remove_enemy(World *world, uint32_t id);
 

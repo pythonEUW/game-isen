@@ -3,6 +3,6 @@
 
 #include "../../shared/include/enemy.h"
 
-void enemy_init(Enemy *enemy, uint32_t id);
+void enemy_init(Enemy *enemy, uint32_t id, EnemyType type);
 
 #endif

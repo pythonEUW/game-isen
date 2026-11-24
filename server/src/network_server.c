@@ -181,6 +181,8 @@ void network_broadcast_enemy_state(
         .x = enemy->pos.x,
         .y = enemy->pos.y,
         .health = (int32_t)enemy->health,
+        .enemy_type = (uint8_t)enemy->type,
+        .level = enemy->level,
         .active = enemy->active
     };
 
