@@ -110,15 +110,10 @@ int network_server_poll(NetworkServer *network, World *world)
                                 player->level++;
                                 printf("Joueur %u passe niveau %u\n",
                                        player->id, player->level);
+                                // Paquet envoye uniquement a ce joueur (pas de broadcast).
+                                network_send_level_up(network, player);
                             }
-                        }                    if (player != NULL) {
-                            player->input_x = input->input_x;
-                            player->input_y = input->input_y;
-                            if(xp_to_next_level(player) <= 0) {
-                                player->level++;
-                            }
-                            player->xp++;
-
+                        }
                     }
                 }
             }
@@ -134,7 +129,6 @@ int network_server_poll(NetworkServer *network, World *world)
 
             if (player != NULL) {
                 world_remove_player(world, id);
-                // active passe a 0 : les clients retirent le joueur.
                 network_broadcast_player_state(network, player);
             }
             event.peer->data = NULL;
@@ -201,4 +195,58 @@ void network_broadcast_world_state(
         if (player->active)
             network_broadcast_player_state(network, player);
     }
+}
+
+void network_send_level_up(
+    NetworkServer *network,
+    Player *player
+)
+{
+    // Retrouver le peer ENet du joueur via peer->data (stocké à la connexion).
+    ENetPeer *peer = NULL;
+    for (size_t i = 0; i < network->host->peerCount; i++) {
+        ENetPeer *p = &network->host->peers[i];
+        if (p->state == ENET_PEER_STATE_CONNECTED &&
+            (uint32_t)(uintptr_t)p->data == player->id) {
+            peer = p;
+            break;
+        }
+    }
+
+    if (peer == NULL)
+        return;
+
+    LevelUpPacket level_up = {
+        .type = PACKET_LEVEL_UP,
+        .player_id = player->id,
+        .new_level = player->level
+    };
+
+    ENetPacket *packet = enet_packet_create(
+        &level_up,
+        sizeof(level_up),
+        ENET_PACKET_FLAG_RELIABLE
+    );
+
+    if (packet != NULL && enet_peer_send(peer, 1, packet) < 0)
+        enet_packet_destroy(packet);
+
+    uint32_t spells[3];
+    size_t spell_count = 0;
+    spell_selection(spells, 3, &spell_count);
+
+    SpellChoicePacket spell_choice = {
+        .type = PACKET_SPELL_CHOICE,
+        .player_id = player->id
+    };
+    memcpy(spell_choice.spells, spells, spell_count * sizeof(uint32_t));
+
+    ENetPacket *choice_packet = enet_packet_create(
+        &spell_choice,
+        sizeof(spell_choice),
+        ENET_PACKET_FLAG_RELIABLE
+    );
+
+    if (choice_packet != NULL && enet_peer_send(peer, 1, choice_packet) < 0)
+        enet_packet_destroy(choice_packet);
 }

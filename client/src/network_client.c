@@ -71,6 +71,12 @@ int network_client_poll(NetworkClient *nc)
                 WelcomePacket welcome;
                 memcpy(&welcome, event.packet->data, sizeof(welcome));
                 nc->player_id = welcome.id;
+            } else if (event.packet->dataLength == sizeof(LevelUpPacket) &&
+                       event.packet->data[0] == PACKET_LEVEL_UP) {
+                LevelUpPacket level_up;
+                memcpy(&level_up, event.packet->data, sizeof(level_up));
+                if (level_up.player_id == nc->player_id)
+                    printf("Niveau %u atteint !\n", level_up.new_level);
             } else if (event.packet->dataLength == sizeof(PlayerStatePacket) &&
                        event.packet->data[0] == PACKET_PLAYER_STATE) {
                 PlayerStatePacket state;

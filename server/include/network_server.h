@@ -20,5 +20,9 @@ void network_broadcast_world_state(
     NetworkServer *network,
     World *world
 );
+void network_send_level_up(
+    NetworkServer *network,
+    Player *player
+);
 
 #endif

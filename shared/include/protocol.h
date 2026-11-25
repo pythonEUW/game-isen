@@ -12,7 +12,9 @@ typedef enum {
     PACKET_PLAYER_STATE = 1,
     PACKET_PLAYER_INPUT = 2,
     PACKET_WELCOME = 3,
-    PACKET_INVENTORY = 4
+    PACKET_INVENTORY = 4,
+    PACKET_LEVEL_UP = 5,
+    PACKET_SPELL_CHOICE = 6
 } PacketType;
 
 typedef struct {
@@ -37,9 +39,16 @@ typedef struct {
     uint32_t id;
 } WelcomePacket;
 
+typedef struct {
+    uint8_t type;
+    uint32_t player_id;
+    uint32_t new_level;
+} LevelUpPacket;
+
 
 typedef struct {
     uint32_t spell_id;
+    uint32_t level;
 } InventorySlot;
 
 typedef struct {
@@ -49,8 +58,10 @@ typedef struct {
     InventorySlot slots[MAX_SPELLS];
 } InventoryPacket;
 
-/* Ajoute une quantite d'item dans le paquet (empile si l'item existe deja).
-   Retourne l'index du slot, ou -1 si le paquet est plein. */
-int inventory_packet_add(InventoryPacket *inv, uint32_t item_id, uint32_t quantity);
+typedef struct {
+    uint8_t type;
+    uint32_t player_id;
+    uint32_t spells[3];
+} SpellChoicePacket;
 
 #endif
